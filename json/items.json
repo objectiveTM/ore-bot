@@ -1,0 +1,37 @@
+{
+    "stone:2":{
+        "emoji": "<:stone_1:1026143481665695774>",
+        "name": "돌",
+        "description": "그렇다 그냥돌이다"
+    },
+    "crushedStone:3":{
+        "emoji": "<:stone_2:1026143549026205728>",
+        "name": "부셔진돌",
+        "description": "그렇다 그냥돌이다 근데 부셔짐을 곁드린"
+    },
+    "wowStone:1":{
+        "emoji": "<:stone:1027187288792383618>",
+        "name": "간지나는돌",
+        "description": "돌"
+    },
+    "hmmStone:0":{
+        "emoji": "<:stone:1027861373654409247>",
+        "name": "이상한 돌",
+        "description": "???"
+    },
+    "blueStone:0":{
+        "emoji": "<:blueStone:1028954142145777686>",
+        "name": "청금석",
+        "description": "???"
+    },
+    "efficiency:3:book":{
+        "emoji": "📘",
+        "name": "효율 책",
+        "description": "???"
+    },
+    "luck:3:book":{
+        "emoji": "📗",
+        "name": "행운 책",
+        "description": "???"
+    }
+}
