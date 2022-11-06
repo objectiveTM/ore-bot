@@ -1,4 +1,5 @@
 import random
+from enum import Enum
 class ColorHax:
     def __init__(self) -> None:
         self.RED = 0xf74b20
