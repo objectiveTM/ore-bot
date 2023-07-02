@@ -300,5 +300,4 @@ class EnchantButton(ui.Button):
         await inter.message.edit(view=v)
         
 
-# CLIENT.run("ODc4NDk0NTI0MzcxMDA5NTQ2.GieiV8.I4kSF3mauL50GrCoHyZuhoqa4mLKFWUUcord-U")
-CLIENT.run("MTAyNzAxMDY3MDQ1MDk3ODg5MA.GNEqCf.xDfHg_nf38o6J43wk8ysYqd8gQlqMzQIRa407Q")
+CLIENT.run("TOKEN")
