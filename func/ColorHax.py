@@ -1,14 +1,13 @@
 import random
-from enum import Enum
-class ColorHax:
-    def __init__(self) -> None:
-        self.RED = 0xf74b20
-        self.BLUE = 0x5833ff
-        self.PERPLE = 0x9900ff
-        self.PINK = 0xff0080
-        self.GRAY = 0x2f3136
 
-    def randomColor(self):
-        return random.choice([self.RED , self.BLUE , self.PERPLE , self.PINK , self.GRAY])
+class ColorHax():
+    RED = 0xf74b20
+    BLUE = 0x5833ff
+    PERPLE = 0x9900ff
+    PINK = 0xff0080
+    GRAY = 0x2f3136
+
+    def randomColor():
+        return random.choice([ColorHax.RED, ColorHax.BLUE, ColorHax.PERPLE, ColorHax.PINK, ColorHax.GRAY])
     
-color = ColorHax()
+color = ColorHax

@@ -1,14 +1,17 @@
 {
     "효율":{
         "description": "효율적으로 많이캘수 있음",
-        "plus": 1
+        "plus": 1,
+        "time": 60
     },
     "행운":{
         "description": "좋은광물이 나올확률이 높아집니다",
-        "luck": 10
+        "luck": 10,
+        "time": 60
     },
     "asdf":{
         "description": "Roblox-뉴비가 탈모빔을 쏴줍니다",
-        "luck": -999999999
+        "luck": -999999999,
+        "time": 60
     }
 }

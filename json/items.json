@@ -2,36 +2,36 @@
     "stone:2":{
         "emoji": "<:stone_1:1026143481665695774>",
         "name": "돌",
-        "description": "그렇다 그냥돌이다"
+        "description": "평범한 돌이에요"
     },
     "crushedStone:3":{
         "emoji": "<:stone_2:1026143549026205728>",
         "name": "부셔진돌",
-        "description": "그렇다 그냥돌이다 근데 부셔짐을 곁드린"
+        "description": "곡굉이를 잘못 휘둘러서 돌이 부셔젔나봐요!"
     },
     "wowStone:1":{
         "emoji": "<:stone:1027187288792383618>",
         "name": "간지나는돌",
-        "description": "돌"
+        "description": "뭔가 있어보이게 부시셧네요"
     },
     "hmmStone:0":{
         "emoji": "<:stone:1027861373654409247>",
-        "name": "이상한 돌",
-        "description": "???"
+        "name": "수상한 돌",
+        "description": "이게..돌...인가....?"
     },
     "blueStone:0":{
         "emoji": "<:blueStone:1028954142145777686>",
-        "name": "청금석",
-        "description": "???"
+        "name": "푸른돌",
+        "description": "이쁘게 생긴 푸른 돌이에요"
     },
     "efficiency:3:book":{
         "emoji": "📘",
-        "name": "효율 책",
-        "description": "???"
+        "name": "효율 임팩트",
+        "description": "뭔가 돌을 더 효율적으로 켈수 있을것같아요"
     },
     "luck:3:book":{
         "emoji": "📗",
-        "name": "행운 책",
-        "description": "???"
+        "name": "행운 임팩트",
+        "description": "뭔가 운이 좋아질것같네요"
     }
 }

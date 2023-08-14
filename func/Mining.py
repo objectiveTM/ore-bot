@@ -5,7 +5,7 @@ from nextcord import *
 from func.Item import Item
 
 class Mining:
-    def __init__(self , _user:Member) -> None:
+    def __init__(self, _user:Member) -> None:
         self.user = _user
         self.__fileName = "json/inv.json"
         
@@ -19,6 +19,9 @@ class Mining:
 
     
     async def get(self , id:str = "stone:1"):
+        """
+        id아이템의 대한 정보를 가져온다
+        """
         if (self.inv.get(str(self.user.id) , "null") == "null"):
             self.inv[str(self.user.id)] = {}
         if (self.inv[str(self.user.id)].get(id , "null") == "null"):
@@ -28,8 +31,12 @@ class Mining:
             
         self.inv[str(self.user.id)]
         await self.__save__()
-        
+    
     async def use(self , id:str , n:int = 0):
+        """
+        id: 사용할 아이템의 id\n
+        n: 사용할 아이템의 개수
+        """
         if (self.inv.get(str(self.user.id) , "null") == "null"):
             raise func.ERROR_404_ITEM
         if (self.inv[str(self.user.id)].get(id , "null") == "null"):
@@ -42,7 +49,10 @@ class Mining:
         self.inv[str(self.user.id)]
         await self.__save__()
         
-    def isUse(self , id:str , n:int = 0):
+    def isUse(self , id:str , n:int = 0) -> bool:
+        """
+        id이름의 아이템 n개를 사용할수있는지 확인하는 함수
+        """
         # print(self.inv[str(self.user.id)][id] < n)
         return all([
             (self.inv[str(self.user.id)].get(id , 0) >= n),
@@ -50,32 +60,43 @@ class Mining:
         ])
     
     @overload
-    def findRank(self , id:str) -> Item: ...
+    def findRank(self , id:str) -> Item: 
+        """
+        id의 아이템을 반환한다
+        """
+        ...
     @overload
-    def findRank(self , ranks:str) -> list[Item]: ...
+    def findRank(self , ranks:str) -> list[Item]:
+        """
+        ranks리스트에있는 랭크에 맞는 아이템을 반환한데
+        """
+        ...
     @overload
-    def findRank(self , rank:str) -> Item: ...
+    def findRank(self , rank:str) -> Item:
+        """
+        rank에 맞는 아이템을 반환한다
+        """
+        ...
 
     def findRank(self , **params) -> Item:
         _id = params.get("id" , None)
         _ranks = params.get("ranks" , None)
         _rank = params.get("rank" , _ranks)
-        if (_id != None):
+        if _id:
             return Item(_id , self._itemJson , self.user)
-        elif (_rank != None):
-            if (_ranks == None):
+        
+        elif _rank:
+            if not _ranks:
                 rank = 0
                 ranks = ["전설" , "에픽" , "레어" , "일반"]
                 for r in ranks:
                     if _rank != r: rank += 1
                     else: break
             else: rank = _rank
-            print(rank)
             rankArr = [Item(item , self._itemJson , self.user) for item in self._itemJson if (str(item).endswith(str(rank)))]
             if (rankArr == []):rankArr = [Item(item , self._itemJson , self.user) for item in self._itemJson if (str(item).endswith(str(_rank)))]
             
             if _ranks != None:return rankArr
-            print(rankArr)
             return random.choice(rankArr)
         return None
         
