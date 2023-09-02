@@ -19,6 +19,7 @@ CUSTOM = p_2048.customs.ORIGINAL.value
 async def on_ready():
     print("RUN")
     print("VERSION: 2.5")
+    
 
 @CLIENT.slash_command(description = "노동을 합니다")
 async def 광질(inter:Interaction):
