@@ -19,10 +19,7 @@ if __name__ == "__main__":
         
 
 else:
-    from .Mining import *
-    from .Inventory import *
     from .ColorHax import *
-    from .EffectItem import *
     from .Emojis import *
 
     ERROR_404_ITEM = Exception("404 Not Found: 아이템을 찾을수 없습니다.")
