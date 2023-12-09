@@ -1,2 +1,3 @@
 class ServerOption(enumerate):
-    Message = 1
+    Message = "Message"
+    Message = "1"

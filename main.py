@@ -8,29 +8,60 @@ import play2048 as p_2048
 
 import json
 
+async def is_blacklist(member: Member, channel: ChannelType):
+    blacklist: list[int] = eval(open("blacklist").read())
+    if member.id in blacklist:
+        try: 
+            await channel.response.send_message("LMAO")
+        except:...
+        await channel.send("LMAO")
+        return True
+    return False
+
 
 
 INTENTS = Intents.all()
-# INTENTS.all()
 CLIENT = cmds.Bot(intents = INTENTS, command_prefix = "/")
 CUSTOM = p_2048.customs.ORIGINAL.value
 
 @CLIENT.event
 async def on_ready():
+    await CLIENT.change_presence(activity=Game(name="정검(정밀검사)"))
     print("RUN")
     print("VERSION: 2.5")
+    Vc.clear()
 
 
 @CLIENT.event
 async def on_message(message: Message):
     server = message.guild.id
-    user = message.author.id
+    member = message.author
 
-    print(server)
+    try: 
+        point = Point(server)
+        point.add_point(member, 1)
+    except: pass
+
+    await CLIENT.process_commands(message)
+
+@CLIENT.event
+async def on_voice_state_update(member: Member, before: VoiceState, after: VoiceState):
+    if before.channel == None and after.channel != None: # vc join
+        Vc.join(member)
+        return
+    
+    if before.channel != None and after.channel == None: # vc leave
+        dt = Vc.leave(member)//3
+        point = Point(CLIENT.get_channel(before.channel.id).guild.id)
+        point.add_point(member, dt)
+        return
+
+      
 
 
 @CLIENT.slash_command(description = "2048을 플레이합니다", name = "2048")
 async def play2048(inter:Interaction, type:str = SlashOption(description = "플레이할것을 선텍하세요", choices={"이미지": "img", "이모지":"emj"}, required=False)):
+    if await is_blacklist(inter.user, inter): return
     _2048 = p_2048.Game()
     views = [
         Play2048(disabled = True), Play2048(label = "w", style = ButtonStyle.blurple, user = inter.user, _2048 = _2048, custom_id="up", type=type), Play2048(disabled = True), Play2048(label = "end", style = ButtonStyle.red, user = inter.user, _2048 = _2048, custom_id="end", type=type),
@@ -49,9 +80,11 @@ async def play2048(inter:Interaction, type:str = SlashOption(description = "플�
         
         embed = Embed(title = f"점수: **0점**", color = color.BLUE)
         await inter.response.send_message(emj, embed = embed, view = Play2048s(views, _2048, inter))
-        
+
 @CLIENT.slash_command(name = "2048랭크", description = "2048의 랭크를 확인합니다")
 async def rank2048(inter:Interaction):
+    if await is_blacklist(inter.user, inter): return
+        
     try: await inter.response.defer()
     except: ...
     with open("json/2048Best.json", "r") as f: _j:dict = json.load(f)
@@ -81,12 +114,35 @@ async def rank2048(inter:Interaction):
     await inter.followup.send(embed = embed)
 
 
+@CLIENT.slash_command(name = "포인트랭킹", description = "포인트 랭킹을 표시합니다")
+async def pointrank(inter: Interaction):
+    if await is_blacklist(inter.user, inter): return
+        
+    try: await inter.response.defer()
+    except: ...
+    description = ""
+    point_user = Point(inter.guild.id).get_list()
+    point_user = sorted(point_user.items(), reverse=True, key=lambda x: x[1])
+    for i in point_user[:10]:
+        
+        user = await CLIENT.fetch_user(i[0])
+        print(i)
+        description += f"- `{user}` {i[1]}\n"
+    
+    embed = Embed(title = "포인트 랭킹!", description = description, color = color.BLUE)
+    await inter.followup.send(embed = embed)
+
+
+
+
 
 
     
 
 @CLIENT.command(name = "2048")
-async def _play2048(ctx: cmds.context.Context, type:str = None):
+async def _play2048(ctx: cmds.context.Context, type: str = None):
+    if await is_blacklist(ctx.message.author, ctx): return
+        
     _2048 = p_2048.Game()
     views = [
         Play2048(disabled = True), Play2048(label = "w", style = ButtonStyle.blurple, user = ctx.author, _2048 = _2048, custom_id="up", type=type), Play2048(disabled = True), Play2048(label = "end", style = ButtonStyle.red, user = ctx.author, _2048 = _2048, custom_id="end", type=type),
@@ -109,6 +165,7 @@ async def _play2048(ctx: cmds.context.Context, type:str = None):
 
 @CLIENT.command(name = "2048랭크")
 async def _rank2048(ctx: cmds.context.Context):
+    if await is_blacklist(ctx.message.author, ctx): return
     with open("json/2048Best.json", "r") as f: _j:dict = json.load(f)
     
     j = sorted(_j.items(), key=lambda x : x[1][0], reverse = True)
@@ -134,6 +191,23 @@ async def _rank2048(ctx: cmds.context.Context):
             i += 1
     embed = Embed(title = "2048 rank!", description = description, color = color.BLUE)
     await ctx.send(embed = embed)
+@CLIENT.command(name = "포인트랭킹")
+async def _pointrank(ctx: cmds.context.Context):
+    if await is_blacklist(ctx.message.author, ctx): return
+        
+
+    description = ""
+    point_user = Point(ctx.guild.id).get_list()
+    point_user = sorted(point_user.items(), reverse=True, key=lambda x: x[1])
+    for i in point_user[:10]:
+        
+        user = await CLIENT.fetch_user(i[0])
+        print(i)
+        description += f"- `{user}` {i[1]}\n"
+    
+    embed = Embed(title = "포인트 랭킹!", description = description, color = color.BLUE)
+    ctx.send(embed=embed)
+
 
 
 
@@ -189,7 +263,7 @@ class Play2048(ui.Button):
             with open("json/2048Best.json", "r") as f: j:dict = json.load(f)
             msg = " | **BEST SCORE!**" if self._2048.point > j.get(str(inter.user.id), [0])[0] else ""
             
-            if type == "emj" or type == "emoji" or type == "이모지":
+            if self._type == "emj" or self._type == "emoji" or self._type == "이모지":
                 with open("json/2048Emoji.json", "r") as f: emoji2048:dict = json.load(f)
                 _emj = self._2048.arr
                 emj = ""
