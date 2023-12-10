@@ -1,4 +1,5 @@
 import random
+from typing import Optional
 from nextcord import *
 from nextcord.ext import commands as cmds
 from func import *
@@ -191,6 +192,14 @@ async def _rank2048(ctx: cmds.context.Context):
             i += 1
     embed = Embed(title = "2048 rank!", description = description, color = color.BLUE)
     await ctx.send(embed = embed)
+
+@CLIENT.command(name = "aaa")
+async def aaa(ctx: cmds.context.Context):
+    if await is_blacklist(ctx.message.author, ctx): return
+    embed = Embed(title = "2048 rank!", description = "description", color = color.BLUE)
+    await ctx.send(embed = embed, view=MakeGuess("sus"))
+
+
 @CLIENT.command(name = "포인트랭킹")
 async def _pointrank(ctx: cmds.context.Context):
     if await is_blacklist(ctx.message.author, ctx): return
@@ -207,8 +216,6 @@ async def _pointrank(ctx: cmds.context.Context):
     
     embed = Embed(title = "포인트 랭킹!", description = description, color = color.BLUE)
     ctx.send(embed=embed)
-
-
 
 
 
@@ -291,6 +298,58 @@ class Play2048(ui.Button):
                 with open("json/2048Best.json", "w") as f: json.dump(j, f, indent = 4)
             await inter.message.edit(view = None)
             await rank2048(inter)
+
+
+class MakeGuess(ui.View):
+    def __init__(self, description: str) -> None:
+        super().__init__(timeout=600.)
+        self.description = description
+        self.viewable = {
+            "point": True,
+            "user_count": True,
+            "percent": True,
+        }
+
+    @ui.button(label="포인트", style=ButtonStyle.blurple)
+    async def point_btn(self, button: ui.Button, inter: Interaction):
+        if self.viewable["point"]:
+            button.style = ButtonStyle.gray
+        else:
+            button.style = ButtonStyle.blurple
+
+        self.viewable["point"] = not self.viewable["point"]
+        embed = inter.message.embeds[0]
+        await inter.message.edit(embed = embed, view = self)
+
+    @ui.button(label="유저수", style=ButtonStyle.blurple)
+    async def user_count_btn(self, button: ui.Button, inter: Interaction):
+        if self.viewable["user_count"]:
+            button.style = ButtonStyle.gray
+        else:
+            button.style = ButtonStyle.blurple
+        embed = inter.message.embeds[0]
+
+        self.viewable["user_count"] = not self.viewable["user_count"]
+        await inter.message.edit(embed = embed, view = self)
+
+
+    @ui.button(label="퍼센트", style=ButtonStyle.blurple)
+    async def percent_btn(self, button: ui.Button, inter: Interaction):
+        if self.viewable["percent"]:
+            button.style = ButtonStyle.gray
+        else:
+            button.style = ButtonStyle.blurple
+
+        self.viewable["percent"] = not self.viewable["percent"]
+        embed = inter.message.embeds[0]
+        await inter.message.edit(embed = embed, view = self)
+
+
+
+
+
+
+
 
 if __name__ == "__main__":
     CLIENT.run(open("TOKEN.secret").read())
