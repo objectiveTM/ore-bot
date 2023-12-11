@@ -43,7 +43,7 @@ async def on_message(message: Message):
         point.add_point(member, 1)
     except: pass
 
-    await CLIENT.process_commands(message)
+    await CLIENT.process_commands(message)  
 
 @CLIENT.event
 async def on_voice_state_update(member: Member, before: VoiceState, after: VoiceState):
@@ -196,7 +196,7 @@ async def _rank2048(ctx: cmds.context.Context):
 @CLIENT.command(name = "aaa")
 async def aaa(ctx: cmds.context.Context):
     if await is_blacklist(ctx.message.author, ctx): return
-    embed = Embed(title = "2048 rank!", description = "description", color = color.BLUE)
+    embed = Embed(title = "2048 rank!", description = f"{Emojis.blueStone} 100(10명)\n{Emojis.yellowStone} 500(5명)", color = color.BLUE)
     await ctx.send(embed = embed, view=MakeGuess("sus"))
 
 
@@ -301,14 +301,14 @@ class Play2048(ui.Button):
 
 
 class MakeGuess(ui.View):
-    def __init__(self, description: str) -> None:
+    def __init__(self, description: str, option = { "point": True,  "user_count": True, "percent": True }) -> None:
         super().__init__(timeout=600.)
         self.description = description
-        self.viewable = {
-            "point": True,
-            "user_count": True,
-            "percent": True,
-        }
+        self.viewable = option
+
+    @ui.button(emoji="<:back:1032996444963090553>", style=ButtonStyle.green, disabled=True)
+    async def back_btn(self, button: ui.Button, inter: Interaction):
+        ...
 
     @ui.button(label="포인트", style=ButtonStyle.blurple)
     async def point_btn(self, button: ui.Button, inter: Interaction):
@@ -319,6 +319,7 @@ class MakeGuess(ui.View):
 
         self.viewable["point"] = not self.viewable["point"]
         embed = inter.message.embeds[0]
+        embed.description = self.make_str()
         await inter.message.edit(embed = embed, view = self)
 
     @ui.button(label="유저수", style=ButtonStyle.blurple)
@@ -327,26 +328,53 @@ class MakeGuess(ui.View):
             button.style = ButtonStyle.gray
         else:
             button.style = ButtonStyle.blurple
-        embed = inter.message.embeds[0]
 
         self.viewable["user_count"] = not self.viewable["user_count"]
-        await inter.message.edit(embed = embed, view = self)
-
-
-    @ui.button(label="퍼센트", style=ButtonStyle.blurple)
-    async def percent_btn(self, button: ui.Button, inter: Interaction):
-        if self.viewable["percent"]:
-            button.style = ButtonStyle.gray
-        else:
-            button.style = ButtonStyle.blurple
-
-        self.viewable["percent"] = not self.viewable["percent"]
         embed = inter.message.embeds[0]
+        embed.description = self.make_str()
+
         await inter.message.edit(embed = embed, view = self)
 
+    @ui.button(emoji="<:front:1032996551229976636>", style=ButtonStyle.green)
+    async def next_btn(self, button: ui.Button, inter: Interaction):
+        await inter.message.edit(embed=Embed("주제"), view=MakeGuess2(self))
+        ...
 
 
+    # @ui.button(label="퍼센트", style=ButtonStyle.blurple)
+    # async def percent_btn(self, button: ui.Button, inter: Interaction):
+    #     if self.viewable["percent"]:
+    #         button.style = ButtonStyle.gray
+    #     else:
+    #         button.style = ButtonStyle.blurple
 
+    #     self.viewable["percent"] = not self.viewable["percent"]
+    #     embed = inter.message.embeds[0]
+    #     await inter.message.edit(embed = embed, view = self)
+
+    def make_str(self):
+        res = ""
+        if self.viewable["user_count"] & self.viewable["point"]:
+            res += f"{Emojis.blueStone} 100(10명)\n" 
+            res += f"{Emojis.yellowStone} 500(5명)"
+
+        elif self.viewable["user_count"]:
+            res += f"{Emojis.blueStone} 10명\n" 
+            res += f"{Emojis.yellowStone} 5명"
+        
+        elif self.viewable["point"]:
+            res += f"{Emojis.blueStone} 100\n" 
+            res += f"{Emojis.yellowStone} 500"
+        else:
+            res += f"{Emojis.blueStone} ???\n" 
+            res += f"{Emojis.yellowStone} ???"
+
+        return res
+
+class MakeGuess2(ui.View):
+    def __init__(self, option) -> None:
+        super().__init__(timeout=None)
+        self.option = option
 
 
 
