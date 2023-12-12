@@ -2,6 +2,8 @@ import random
 from typing import Optional
 from nextcord import *
 from nextcord.ext import commands as cmds
+from nextcord.interactions import Interaction
+from nextcord.utils import MISSING
 from func import *
 import typing
 import time
@@ -196,8 +198,8 @@ async def _rank2048(ctx: cmds.context.Context):
 @CLIENT.command(name = "aaa")
 async def aaa(ctx: cmds.context.Context):
     if await is_blacklist(ctx.message.author, ctx): return
-    embed = Embed(title = "2048 rank!", description = f"{Emojis.blueStone} 100(10명)\n{Emojis.yellowStone} 500(5명)", color = color.BLUE)
-    await ctx.send(embed = embed, view=MakeGuess("sus"))
+    embed = Embed(title = "보여줄 정보를 선택해주세요", description = MakeGuess().make_str(), color = color.BLUE)
+    await ctx.send(embed = embed, view=MakeGuess())
 
 
 @CLIENT.command(name = "포인트랭킹")
@@ -301,10 +303,10 @@ class Play2048(ui.Button):
 
 
 class MakeGuess(ui.View):
-    def __init__(self, description: str, option = { "point": True,  "user_count": True, "percent": True }) -> None:
+    def __init__(self, option = { "point": True,  "user_count": True, "percent": True }, guess: list=["???", "???"]) -> None:
         super().__init__(timeout=600.)
-        self.description = description
         self.viewable = option
+        self.guess = guess
 
     @ui.button(emoji="<:back:1032996444963090553>", style=ButtonStyle.green, disabled=True)
     async def back_btn(self, button: ui.Button, inter: Interaction):
@@ -337,47 +339,76 @@ class MakeGuess(ui.View):
 
     @ui.button(emoji="<:front:1032996551229976636>", style=ButtonStyle.green)
     async def next_btn(self, button: ui.Button, inter: Interaction):
-        await inter.message.edit(embed=Embed("주제"), view=MakeGuess2(self))
-        ...
+        await inter.message.edit(embed=Embed(title = "주제를 설정해주세요", description=MakeGuess2(self).make_str()), view=MakeGuess2(self))
 
-
-    # @ui.button(label="퍼센트", style=ButtonStyle.blurple)
-    # async def percent_btn(self, button: ui.Button, inter: Interaction):
-    #     if self.viewable["percent"]:
-    #         button.style = ButtonStyle.gray
-    #     else:
-    #         button.style = ButtonStyle.blurple
-
-    #     self.viewable["percent"] = not self.viewable["percent"]
-    #     embed = inter.message.embeds[0]
-    #     await inter.message.edit(embed = embed, view = self)
 
     def make_str(self):
         res = ""
-        if self.viewable["user_count"] & self.viewable["point"]:
-            res += f"{Emojis.blueStone} 100(10명)\n" 
-            res += f"{Emojis.yellowStone} 500(5명)"
+        if self.viewable["user_count"]:
+            res += "### 유저(30/70)\n"
+            res += f"**[30%]** {Emojis.yellowStone*3}{Emojis.blueStone*7} **[50%]**\n"
+        if self.viewable["point"]:
+            res += "### 포인트(100000/100000)\n"
+            res += f"**[50%]** {Emojis.yellowStone*5}{Emojis.blueStone*5} **[50%]**\n"
 
-        elif self.viewable["user_count"]:
-            res += f"{Emojis.blueStone} 10명\n" 
-            res += f"{Emojis.yellowStone} 5명"
-        
-        elif self.viewable["point"]:
-            res += f"{Emojis.blueStone} 100\n" 
-            res += f"{Emojis.yellowStone} 500"
-        else:
-            res += f"{Emojis.blueStone} ???\n" 
-            res += f"{Emojis.yellowStone} ???"
+        if not (self.viewable["user_count"] | self.viewable["point"]):
+            res += "### 유저(30/70)\n"
+            res += f"**[???]** {Emojis.grayStone*10} **[???]**\n"
+            res += "### 포인트(100000/100000)\n"
+            res += f"**[???]** {Emojis.grayStone*10} **[???]**\n"
+
 
         return res
 
 class MakeGuess2(ui.View):
-    def __init__(self, option) -> None:
+    def __init__(self, option: MakeGuess) -> None:
         super().__init__(timeout=None)
         self.option = option
 
+    @ui.button(emoji="<:back:1032996444963090553>", style=ButtonStyle.green)
+    async def back_btn(self, button: ui.Button, inter: Interaction):
+        await inter.message.edit(embed=Embed(title="보여줄 정보를 선택해주세요", description=self.option.make_str(), color=color.BLUE), view = self.option)
+
+    @ui.button(emoji=Emojis.blueStone, style=ButtonStyle.gray)
+    async def one_btn(self, button: ui.Button, inter: Interaction):
+        await inter.response.send_modal(GuessModal(self, 0))
+
+    @ui.button(emoji=Emojis.yellowStone, style=ButtonStyle.gray)
+    async def two_btn(self, button: ui.Button, inter: Interaction):
+        await inter.response.send_modal(GuessModal(self, 1))
 
 
+    @ui.button(emoji="<:speaker:1043817834003832863>", style=ButtonStyle.green)
+    async def make_btn(self, button: ui.Button, inter: Interaction):
+        ...
+
+    
+    def make_str(self):
+        res = f"{Emojis.blueStone} {self.option.guess[0]}\n{Emojis.yellowStone} {self.option.guess[1]}\n\n"
+        res += self.option.make_str()
+        return res
+
+class GuessModal(ui.Modal):
+    def __init__(self, guess: MakeGuess2, idx: int) -> None:
+        super().__init__("추가하기")
+        df_value = guess.option.guess[idx]
+        if df_value == "???": df_value = None
+        self.option = ui.TextInput(
+            "여기에 입력해주세요",
+            placeholder = "뭐하지",
+            required=True,
+            default_value=df_value,
+            style = TextInputStyle.short
+        )
+        self.idx = idx
+        self.guess = guess
+        self.add_item(self.option)
+
+    async def callback(self, inter: Interaction) -> None:
+        self.guess.option.guess[self.idx] = self.option.value
+        embed = Embed(title= "주제를 설정해주세요")
+        embed.description = self.guess.make_str()
+        await inter.message.edit(embed = embed, view = MakeGuess2(self.guess.option))
 
 if __name__ == "__main__":
     CLIENT.run(open("TOKEN.secret").read())
