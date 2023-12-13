@@ -13,7 +13,6 @@ import time
 import play2048 as p_2048
 
 import json
-
 async def is_blacklist(member: Member, channel: ChannelType):
     blacklist: list[int] = eval(open("blacklist").read())
     if member.id in blacklist:
@@ -32,11 +31,13 @@ CUSTOM = p_2048.customs.ORIGINAL.value
 
 @CLIENT.event
 async def on_ready():
+    global GUESS_CLIENT
     await CLIENT.change_presence(activity=Game(name="정검(정밀검사)"))
     print("RUN")
     print("VERSION: 2.5")
     Vc.clear()
     CLIENT.add_view(Guess())
+    GUESS_CLIENT = CLIENT
 
 
 @CLIENT.event
@@ -387,6 +388,7 @@ class MakeGuess2(ui.View):
         gj = GuessJson()
         message: Message = await inter.channel.send("wait...", view = Guess())
         gj.make(message.id, self.option.viewable, self.option.guess)
+        await message.edit(embed=Embed(description=gj.make_str(message.id), color=color.BLUE))
 
     
     def make_str(self):
@@ -423,8 +425,10 @@ class GuessBtn(ui.Button):
         super().__init__(style=ButtonStyle.blurple, custom_id=f"guessbtn-{self.idx}",  emoji=Emojis.blueStone if not idx else Emojis.yellowStone)
     async def callback(self, inter: Interaction) -> None:
         gj = GuessJson()
-        msg = gj.vote(inter.message.id, inter.user.id, self.idx)
+        msg = gj.vote(inter.guild.id, inter.message.id, inter.user.id, 10, self.idx)
         await inter.response.send_message(msg, ephemeral=True)
+        print(gj.make_str(inter.message.id))
+        await inter.message.edit(content="", embed=Embed(description=gj.make_str(inter.message.id), color=color.BLUE))
 
 class Guess(ui.View):
     def __init__(self) -> None:

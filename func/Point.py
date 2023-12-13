@@ -8,12 +8,18 @@ class Point:
         with open("json/point.json", "r") as f: self.point: dict = json.load(f)
         self.server = str(server)
 
-    def add_point(self, member: Member, n):
-        if member.bot: return
-        self.point[self.server] = self.point.get(self.server, {})
-        self.point[self.server][str(member.id)] = self.point[self.server].get(str(member.id), 0)
+    def add_point(self, member: Member|int, n):
+        if type(member) == int:
+            self.point[self.server] = self.point.get(self.server, {})
+            self.point[self.server][str(member)] = self.point[self.server].get(str(member), 0)
 
-        self.point[self.server][str(member.id)] += int(n)
+            self.point[self.server][str(member)] += int(n)
+
+        else:
+            if member.bot: return
+            self.point[self.server] = self.point.get(self.server, {})
+            self.point[self.server][str(member.id)] = self.point[self.server].get(str(member.id), 0)
+            self.point[self.server][str(member.id)] += int(n)
 
         with open("json/point.json", "w") as f: json.dump(self.point, f, indent=4)
 
