@@ -1,8 +1,11 @@
 import random
-from typing import Optional
+from typing import Optional, Union
 from nextcord import *
+from nextcord.emoji import Emoji
+from nextcord.enums import ButtonStyle
 from nextcord.ext import commands as cmds
 from nextcord.interactions import Interaction
+from nextcord.partial_emoji import PartialEmoji
 from nextcord.utils import MISSING
 from func import *
 import typing
@@ -33,6 +36,7 @@ async def on_ready():
     print("RUN")
     print("VERSION: 2.5")
     Vc.clear()
+    CLIENT.add_view(Guess())
 
 
 @CLIENT.event
@@ -303,7 +307,7 @@ class Play2048(ui.Button):
 
 
 class MakeGuess(ui.View):
-    def __init__(self, option = { "point": True,  "user_count": True, "percent": True }, guess: list=["???", "???"]) -> None:
+    def __init__(self, option = { "point": True,  "user_count": True }, guess: list=["???", "???"]) -> None:
         super().__init__(timeout=600.)
         self.viewable = option
         self.guess = guess
@@ -352,9 +356,9 @@ class MakeGuess(ui.View):
             res += f"**[50%]** {Emojis.yellowStone*5}{Emojis.blueStone*5} **[50%]**\n"
 
         if not (self.viewable["user_count"] | self.viewable["point"]):
-            res += "### 유저(30/70)\n"
+            res += "### 유저(???/???)\n"
             res += f"**[???]** {Emojis.grayStone*10} **[???]**\n"
-            res += "### 포인트(100000/100000)\n"
+            res += "### 포인트(???/???)\n"
             res += f"**[???]** {Emojis.grayStone*10} **[???]**\n"
 
 
@@ -380,7 +384,9 @@ class MakeGuess2(ui.View):
 
     @ui.button(emoji="<:speaker:1043817834003832863>", style=ButtonStyle.green)
     async def make_btn(self, button: ui.Button, inter: Interaction):
-        ...
+        gj = GuessJson()
+        message: Message = await inter.channel.send("wait...", view = Guess())
+        gj.make(message.id, self.option.viewable, self.option.guess)
 
     
     def make_str(self):
@@ -409,6 +415,22 @@ class GuessModal(ui.Modal):
         embed = Embed(title= "주제를 설정해주세요")
         embed.description = self.guess.make_str()
         await inter.message.edit(embed = embed, view = MakeGuess2(self.guess.option))
+
+class GuessBtn(ui.Button):
+    def __init__(self, idx: int) -> None:
+        self.id = id
+        self.idx = idx
+        super().__init__(style=ButtonStyle.blurple, custom_id=f"guessbtn-{self.idx}",  emoji=Emojis.blueStone if not idx else Emojis.yellowStone)
+    async def callback(self, inter: Interaction) -> None:
+        gj = GuessJson()
+        msg = gj.vote(inter.message.id, inter.user.id, self.idx)
+        await inter.response.send_message(msg, ephemeral=True)
+
+class Guess(ui.View):
+    def __init__(self) -> None:
+        super().__init__(timeout=None)
+        self.add_item(GuessBtn(0))
+        self.add_item(GuessBtn(1))
 
 if __name__ == "__main__":
     CLIENT.run(open("TOKEN.secret").read())

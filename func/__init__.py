@@ -23,6 +23,7 @@ else:
     from .Emojis import *
     from .Vc import *
     from .Point import *
+    from .GuessJson import *
 
     ERROR_404_ITEM = Exception("404 Not Found: 아이템을 찾을수 없습니다.")
     ERROR_505_ENOUGHT = Exception("505 Not Enought: 아이템을 이 충분하지 않습니다.")
