@@ -59,7 +59,7 @@ async def on_voice_state_update(member: Member, before: VoiceState, after: Voice
         return
     
     if before.channel != None and after.channel == None: # vc leave
-        dt = Vc.leave(member)//3
+        dt = Vc.leave(member)//15
         point = Point(CLIENT.get_channel(before.channel.id).guild.id)
         point.add_point(member, dt)
         return
