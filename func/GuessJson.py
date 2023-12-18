@@ -36,10 +36,12 @@ class GuessJson:
         if p.get_user(user) - point >= 0:
             self.guess[str(id)]["point"][idx][str(user)] = point
             p.add_point(user, -point)
+            if self.guess[str(id)]["point"][idx][str(user)] == 0: del self.guess[str(id)]["point"][idx][str(user)]
         else:
             if old_idx != None:
                 p.add_point(user, -add_point)
                 self.guess[str(id)]["point"][old_idx][str(user)] = add_point
+                if self.guess[str(id)]["point"][old_idx][str(user)] == 0: del self.guess[str(id)]["point"][old_idx][str(user)]
 
 
 

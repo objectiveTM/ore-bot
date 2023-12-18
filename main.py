@@ -3,7 +3,7 @@ from typing import Optional, Union
 from nextcord import *
 from nextcord.emoji import Emoji
 from nextcord.enums import ButtonStyle
-from nextcord.ext import commands as cmds
+from nextcord.ext import commands as cmds, application_checks
 from nextcord.interactions import Interaction
 from nextcord.partial_emoji import PartialEmoji
 from nextcord.utils import MISSING
@@ -64,7 +64,6 @@ async def on_voice_state_update(member: Member, before: VoiceState, after: Voice
         point.add_point(member, dt)
         return
 
-      
 
 
 @CLIENT.slash_command(description = "2048을 플레이합니다", name = "2048")
@@ -89,7 +88,7 @@ async def play2048(inter:Interaction, type:str = SlashOption(description = "플�
         embed = Embed(title = f"점수: **0점**", color = color.BLUE)
         await inter.response.send_message(emj, embed = embed, view = Play2048s(views, _2048, inter))
 
-@CLIENT.slash_command(name = "2048랭크", description = "2048의 랭크를 확인합니다")
+@play2048.subcommand(name = "랭킹", description = "2048의 랭킹를 확인합니다")
 async def rank2048(inter:Interaction):
     if await is_blacklist(inter.user, inter): return
         
@@ -121,8 +120,11 @@ async def rank2048(inter:Interaction):
     embed = Embed(title = "2048 rank!", description = description, color = color.BLUE)
     await inter.followup.send(embed = embed)
 
-
-@CLIENT.slash_command(name = "포인트랭킹", description = "포인트 랭킹을 표시합니다")
+@CLIENT.slash_command(name = "포인트", description = "자신의 포인트를 가저옵니다")
+async def point(inter: Interaction):
+    await inter.reponse.send_message(Point(inter.guild).point)
+    return
+@point.subcommand(name = "랭킹", description = "포인트 랭킹을 표시합니다")
 async def pointrank(inter: Interaction):
     if await is_blacklist(inter.user, inter): return
         
@@ -134,18 +136,51 @@ async def pointrank(inter: Interaction):
     for i in point_user[:10]:
         
         user = await CLIENT.fetch_user(i[0])
-        print(i)
         description += f"- `{user}` {i[1]}\n"
     
     embed = Embed(title = "포인트 랭킹!", description = description, color = color.BLUE)
     await inter.followup.send(embed = embed)
 
 
+@point.subcommand(name = "추측", description = "포인트로 추측을 할수있는 게임을 만듭니다")
+@application_checks.has_permissions(administrator=True)
+async def point_guess(
+        inter: Interaction,
+        guess1: str = SlashOption(name="첫번째값", description="추측의 첫번째값을 써주세요"),
+        guess2: str = SlashOption(name="두번째값", description="추측의 두번째값을 써주세요"),
 
-
-
-
+        point: str = SlashOption(name="포인트_설정", description="포인트값을 보이게할지 숨기게할지 정해주세요" , required=False, choices={"보이기", "숨기기"}),
+        user_count: str = SlashOption(name="유저_설정", description="유저수를 보이게할지 숨기게할지 정해주세요" , required=False, choices={"보이기", "숨기기"})
+    ):
+    if await is_blacklist(inter.user, inter): return
+    # embed = Embed(title = "보여줄 정보를 선택해주세요", description = MakeGuess().make_str(), color = color.BLUE)
+    # await inter.response.send_message(embed = embed, view=MakeGuess())
+    gj = GuessJson()
+    message: Message = await inter.channel.send("wait...", view = Guess())
+    viewable = {
+        "point": point == "보이기",
+        "user_count": user_count == "숨기기"
+    }
+    guess = [guess1, guess2]
     
+    gj.make(message.id, viewable, guess)
+    await message.edit(embed=Embed(description=gj.make_str(message.id), color=color.BLUE))
+
+
+
+# @point_guess.subcommand(name = "감성있게", description = "포인트로 추측을 할수있는 게임을 만듭니다")
+# @application_checks.has_permissions(administrator=True)
+# async def point_guess_wtf(inter: Interaction):
+#     if await is_blacklist(inter.user, inter): return
+
+#     embed = Embed(title = "보여줄 정보를 선택해주세요", description = MakeGuess().make_str(), color = color.BLUE)
+#     await inter.response.send_message(embed = embed, view=MakeGuess())
+
+
+
+
+
+
 
 @CLIENT.command(name = "2048")
 async def _play2048(ctx: cmds.context.Context, type: str = None):
@@ -200,12 +235,6 @@ async def _rank2048(ctx: cmds.context.Context):
     embed = Embed(title = "2048 rank!", description = description, color = color.BLUE)
     await ctx.send(embed = embed)
 
-@CLIENT.command(name = "aaa")
-async def aaa(ctx: cmds.context.Context):
-    if await is_blacklist(ctx.message.author, ctx): return
-    embed = Embed(title = "보여줄 정보를 선택해주세요", description = MakeGuess().make_str(), color = color.BLUE)
-    await ctx.send(embed = embed, view=MakeGuess())
-
 
 @CLIENT.command(name = "포인트랭킹")
 async def _pointrank(ctx: cmds.context.Context):
@@ -218,7 +247,6 @@ async def _pointrank(ctx: cmds.context.Context):
     for i in point_user[:10]:
         
         user = await CLIENT.fetch_user(i[0])
-        print(i)
         description += f"- `{user}` {i[1]}\n"
     
     embed = Embed(title = "포인트 랭킹!", description = description, color = color.BLUE)
@@ -331,6 +359,7 @@ class MakeGuess(ui.View):
 
     @ui.button(label="유저수", style=ButtonStyle.blurple)
     async def user_count_btn(self, button: ui.Button, inter: Interaction):
+        if not inter.user.guild_permissions.administrator: return
         if self.viewable["user_count"]:
             button.style = ButtonStyle.gray
         else:
@@ -344,6 +373,7 @@ class MakeGuess(ui.View):
 
     @ui.button(emoji="<:front:1032996551229976636>", style=ButtonStyle.green)
     async def next_btn(self, button: ui.Button, inter: Interaction):
+        if not inter.user.guild_permissions.administrator: return
         await inter.message.edit(embed=Embed(title = "주제를 설정해주세요", description=MakeGuess2(self).make_str()), view=MakeGuess2(self))
 
 
@@ -372,19 +402,23 @@ class MakeGuess2(ui.View):
 
     @ui.button(emoji="<:back:1032996444963090553>", style=ButtonStyle.green)
     async def back_btn(self, button: ui.Button, inter: Interaction):
+        if not inter.user.guild_permissions.administrator: return
         await inter.message.edit(embed=Embed(title="보여줄 정보를 선택해주세요", description=self.option.make_str(), color=color.BLUE), view = self.option)
 
     @ui.button(emoji=Emojis.blueStone, style=ButtonStyle.gray)
     async def one_btn(self, button: ui.Button, inter: Interaction):
+        if not inter.user.guild_permissions.administrator: return
         await inter.response.send_modal(GuessModal(self, 0))
 
     @ui.button(emoji=Emojis.yellowStone, style=ButtonStyle.gray)
     async def two_btn(self, button: ui.Button, inter: Interaction):
+        if not inter.user.guild_permissions.administrator: return
         await inter.response.send_modal(GuessModal(self, 1))
 
 
     @ui.button(emoji="<:speaker:1043817834003832863>", style=ButtonStyle.green)
     async def make_btn(self, button: ui.Button, inter: Interaction):
+        if not inter.user.guild_permissions.administrator: return
         gj = GuessJson()
         message: Message = await inter.channel.send("wait...", view = Guess())
         gj.make(message.id, self.option.viewable, self.option.guess)
@@ -424,17 +458,37 @@ class GuessBtn(ui.Button):
         self.idx = idx
         super().__init__(style=ButtonStyle.blurple, custom_id=f"guessbtn-{self.idx}",  emoji=Emojis.blueStone if not idx else Emojis.yellowStone)
     async def callback(self, inter: Interaction) -> None:
-        gj = GuessJson()
-        msg = gj.vote(inter.guild.id, inter.message.id, inter.user.id, 10, self.idx)
-        await inter.response.send_message(msg, ephemeral=True)
-        print(gj.make_str(inter.message.id))
-        await inter.message.edit(content="", embed=Embed(description=gj.make_str(inter.message.id), color=color.BLUE))
+        await inter.response.send_modal(GuessBetModal(self.idx))
 
 class Guess(ui.View):
     def __init__(self) -> None:
         super().__init__(timeout=None)
         self.add_item(GuessBtn(0))
         self.add_item(GuessBtn(1))
+
+
+class GuessBetModal(ui.Modal):
+    def __init__(self, idx: int) -> None:
+        super().__init__("추측!", timeout=None)
+        self.point = ui.TextInput(
+            label = "몇 포인트를 배팅하실껀가요?",
+            style = TextInputStyle.short,
+            default_value = "0",
+            placeholder="1121"
+        )
+        self.add_item(self.point)
+        self.idx = idx;
+    
+    async def callback(self, inter: Interaction) -> None:
+        point = 0
+        try:
+            point = int(self.point.value)
+        except:
+            return await inter.response.send_message("숫자를 입력해주세요 :)", ephemeral=True)
+        gj = GuessJson()
+        msg = gj.vote(inter.guild.id, inter.message.id, inter.user.id, point, self.idx)
+        await inter.response.send_message(msg, ephemeral=True)
+        await inter.message.edit(content="", embed=Embed(description=gj.make_str(inter.message.id), color=color.BLUE))
 
 if __name__ == "__main__":
     CLIENT.run(open("TOKEN.secret").read())
