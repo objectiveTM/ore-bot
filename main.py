@@ -456,15 +456,25 @@ class GuessBtn(ui.Button):
     def __init__(self, idx: int) -> None:
         self.id = id
         self.idx = idx
-        super().__init__(style=ButtonStyle.blurple, custom_id=f"guessbtn-{self.idx}",  emoji=Emojis.blueStone if not idx else Emojis.yellowStone)
+        if idx != -1: return super().__init__(style=ButtonStyle.blurple, custom_id=f"guessbtn-{self.idx}",  emoji=Emojis.blueStone if not idx else Emojis.yellowStone)
+        super().__init__(style=ButtonStyle.red, custom_id=f"guessbtn-{self.idx}",  emoji=Emojis.grayStone)
+
     async def callback(self, inter: Interaction) -> None:
-        await inter.response.send_modal(GuessBetModal(self.idx))
+        if self.idx != -1:
+            return await inter.response.send_modal(GuessBetModal(self.idx))
+        gj = GuessJson()
+        gj.close(inter.guild_id, inter.message.id, 0)
+
+        await inter.message.edit(embed = inter.message.embeds[0], view=None)
+        
+
 
 class Guess(ui.View):
     def __init__(self) -> None:
         super().__init__(timeout=None)
         self.add_item(GuessBtn(0))
         self.add_item(GuessBtn(1))
+        self.add_item(GuessBtn(-1))
 
 
 class GuessBetModal(ui.Modal):

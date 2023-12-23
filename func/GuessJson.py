@@ -83,6 +83,11 @@ class GuessJson:
             return True
         return False
     
+    def close(self, server: int, id: int, idx: int):
+        p = Point(server)
+        for user_point in self.guess[str(id)]["point"][idx].items():
+            p.add_point(int(user_point[0]), user_point[1])
+
 def _percent(a, b) -> list[float]:
     s = a + b
     if a+b:
