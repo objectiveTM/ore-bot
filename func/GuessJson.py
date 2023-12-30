@@ -1,6 +1,7 @@
 import json
 from .Emojis import *
 from .Point import *
+from .GuessOption import *
 from nextcord import *
 GUESS_CLIENT: Client = None
 class GuessJson:
@@ -17,9 +18,11 @@ class GuessJson:
         }
         with open("json/guess.json", "w") as f: json.dump(self.guess, f, indent=4)
 
+    def get(self, id: int) -> GuessOption:
+        return GuessOption(self.guess[str(id)])
+
     def vote(self, server: int, id: int, user: int, point: int, idx: int) -> str:
         p = Point(server)
-        print(idx)
         old_idx = None
         add_point = 0
         if str(user) in self.guess[str(id)]["point"][idx]:
@@ -27,6 +30,7 @@ class GuessJson:
             p.add_point(user, add_point)
             del self.guess[str(id)]["point"][idx][str(user)]
             old_idx = idx
+
         if str(user) in self.guess[str(id)]["point"][int(not idx)]:
             add_point = self.guess[str(id)]["point"][int(not idx)][str(user)]
             p.add_point(user, add_point)
@@ -42,6 +46,7 @@ class GuessJson:
                 p.add_point(user, -add_point)
                 self.guess[str(id)]["point"][old_idx][str(user)] = add_point
                 if self.guess[str(id)]["point"][old_idx][str(user)] == 0: del self.guess[str(id)]["point"][old_idx][str(user)]
+            return "가지고 있는 포인트보다 입력한 포인트가 커요!"
 
 
 
@@ -50,10 +55,8 @@ class GuessJson:
     
     def make_str(self, id: int) -> str:
         res = f"{Emojis.blueStone} {self.guess[str(id)]['title'][0]}\n{Emojis.yellowStone} {self.guess[str(id)]['title'][1]}\n\n"
-        print(sum_key(self.guess[str(id)]["point"][0].items(), lambda x: x[1]))
 
         if self.guess[str(id)]["option"]["user_count"]:
-            print(len(self.guess[str(id)]['point'][0]), len(self.guess[str(id)]['point'][1]))
             percent = _percent(len(self.guess[str(id)]['point'][0]), len(self.guess[str(id)]['point'][1]))
             res += f"### 유저({len(self.guess[str(id)]['point'][0])}/{len(self.guess[str(id)]['point'][1])})\n"
             if percent == [0, 0]:
@@ -86,7 +89,9 @@ class GuessJson:
     def close(self, server: int, id: int, idx: int):
         p = Point(server)
         for user_point in self.guess[str(id)]["point"][idx].items():
-            p.add_point(int(user_point[0]), user_point[1])
+            p.add_point(int(user_point[0]), user_point[1]*2)
+        del self.guess[str(id)]
+        with open("json/guess.json", "w") as f: json.dump(self.guess, f, indent=4)
 
 def _percent(a, b) -> list[float]:
     s = a + b

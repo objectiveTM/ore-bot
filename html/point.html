@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <header>
+        <h1>susy</h1>
+        <h2>vs</h2>
+        <h1>baka</h1>
+    </header>
+    <main>
+        <article>
+            <section>
+                <img src="https://images-ext-1.discordapp.net/external/exqx7-zkOWceChwWPcSiK3gDsr-juXan04GVsLPcHTg/%3Fsize%3D1024/https/cdn.discordapp.com/avatars/577266050769485844/3ba152e903e775d5e978786309da96d4.png?format=webp&quality=lossless">
+                <div>
+                    <b>5-23</b>
+                    <b>+100포인트</b>
+                </div>
+            </section>
+        </article>
+        <article>
+            <section>
+                <img src="https://images-ext-1.discordapp.net/external/exqx7-zkOWceChwWPcSiK3gDsr-juXan04GVsLPcHTg/%3Fsize%3D1024/https/cdn.discordapp.com/avatars/577266050769485844/3ba152e903e775d5e978786309da96d4.png?format=webp&quality=lossless">
+                <div>
+                    <b>5-23</b>
+                    <b>-100포인트</b>
+                </div>
+            </section>
+        </article>
+    </main>
+</body>
+</html>
+
+<style>
+    @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+    *{
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Pretendard";
+    }
+    body {
+        background-color: #24273a;
+        padding: 5vw;
+    }
+
+    header {
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        padding: 5vw;
+        flex-wrap: wrap;
+        gap: 30px;
+        height: 500px;
+        background-color: #181926;
+        font-size: 40px;
+        border-radius: 24px;
+
+        > h2 {
+            color: #cad3f5
+        }
+        > h1 {
+            &:first-child {
+                color: #8aadf4;
+            }
+            &:last-child {
+                color: #eed49f;
+            }
+        }
+    }
+
+    main {
+        padding-top: 5vw;
+        display: flex;
+        gap: 5vw;
+        > article {
+            &:first-child {
+                --color: #8aadf4;
+            }
+            
+            &:last-child {
+                --color: #eed49f;
+            }
+            width: 50%;
+            > section {
+                background-color: #1e2030;
+                padding: 24px;
+                border-radius: 20px;
+                display: flex;
+                align-items: center;
+                gap: 20px;
+                > img {
+                    border-radius: 12px;
+                    width: 80px;
+                }
+                > div {
+                    display: flex;
+                    flex-direction: column;
+                    > b {
+                        color: var(--color);
+                        font-size: 24px;
+                        filter: brightness(1);
+                        &:last-child {
+                            color: var(--color);
+                            filter: brightness(0.8);
+                            text-decoration: none;
+                            font-size: 16px;
+                        }
+                    }
+                }
+            }
+        }
+    }
+</style>

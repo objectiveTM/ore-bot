@@ -1,6 +1,7 @@
 import random
-from typing import Optional, Union
+from typing import List, Optional, Union
 from nextcord import *
+from nextcord.components import SelectOption
 from nextcord.emoji import Emoji
 from nextcord.enums import ButtonStyle
 from nextcord.ext import commands as cmds, application_checks
@@ -255,7 +256,7 @@ async def _pointrank(ctx: cmds.context.Context):
 
 
 class Comps(ui.View):
-    def __init__(self, comps: list[ui.Select]):
+    def __init__(self, comps: list[ui.Select|ui.Button]):
         super().__init__()
         for comp in comps:
             self.add_item(comp)
@@ -462,12 +463,30 @@ class GuessBtn(ui.Button):
     async def callback(self, inter: Interaction) -> None:
         if self.idx != -1:
             return await inter.response.send_modal(GuessBetModal(self.idx))
+        await inter.response.send_message(view = Comps([GuessEnd(inter.message.id)]), ephemeral=True)
+
+# class GuessEndOption(SelectOption):
+#     def __init__():
+#         ...
+
+class GuessEnd(ui.Select):
+    def __init__(self, msg_id: int) -> None:
+        title = GuessJson().get(msg_id).title;
+        super().__init__(
+            placeholder="정답을 선택해주세요",
+            options=[
+                SelectOption(label=title[0], emoji=Emojis.blueStone, value=0),
+                SelectOption(label=title[1], emoji=Emojis.yellowStone, value=1),
+            ]
+        )
+        self.msg_id = msg_id
+    async def callback(self, inter: Interaction) -> None:
         gj = GuessJson()
-        gj.close(inter.guild_id, inter.message.id, 0)
-
-        await inter.message.edit(embed = inter.message.embeds[0], view=None)
-        
-
+        msg = inter.channel.get_partial_message(self.msg_id)
+        embed = Embed(title=f"정답은 {gj.get(self.msg_id).title[int(self.values[0])]} 였습니다!", description=gj.make_str(self.msg_id), color=ColorHax.BLUE)
+        gj.close(inter.guild_id, self.msg_id, int(self.values[0]))
+        await msg.edit(embed = embed, view=None)
+        # await inter.user.send(file=File(fp="html/point.html", filename="test.html"))
 
 class Guess(ui.View):
     def __init__(self) -> None:
