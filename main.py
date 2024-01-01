@@ -463,6 +463,7 @@ class GuessBtn(ui.Button):
     async def callback(self, inter: Interaction) -> None:
         if self.idx != -1:
             return await inter.response.send_modal(GuessBetModal(self.idx))
+        if not inter.permissions.administrator: return
         await inter.response.send_message(view = Comps([GuessEnd(inter.message.id)]), ephemeral=True)
 
 # class GuessEndOption(SelectOption):
